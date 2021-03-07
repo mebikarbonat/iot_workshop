@@ -8,10 +8,20 @@
 
 #define DHTTYPE DHT11   // DHT 11
 
+uint8_t DHTPin = D4; 
+               
+DHT dht(DHTPin, DHTTYPE);                
+
+float Temperature;
+float Humidity;
+
 #define SendKey 0
 
 int port = 8888;
 WiFiServer server(port);
+
+long previousMillis = 0;
+long interval = 5000;
 
 //Server connect to WiFi Network
 const char *ssid = "AziSheNetwork2.4@unifi";
@@ -24,6 +34,9 @@ void setup()
   Serial.begin(9600);
   //pinMode(SendKey,INPUT_PULLUP);  //Btn to send data
   Serial.println();
+
+  pinMode(DHTPin, INPUT);
+  dht.begin();
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password); //Connect to wifi
@@ -55,6 +68,7 @@ void setup()
 void loop() 
 {
   WiFiClient client = server.available();
+  String sendToClient;
   
   if (client) {
     if(client.connected())
@@ -67,11 +81,19 @@ void loop()
         // read data from the connected client
         Serial.write(client.read()); 
       }
-      //Send Data to connected client
-      while(Serial.available()>0)
-      {
-        client.write(Serial.read());
-      }
+       unsigned long currentMillis = millis();
+       if(currentMillis - previousMillis > interval) {
+
+       previousMillis = currentMillis;
+       Temperature = dht.readTemperature();
+       Humidity = dht.readHumidity(); 
+       client.write(" Temperature:");
+       sendToClient = String(Temperature);
+       client.print(sendToClient);
+       client.write(" Humidity:");
+       sendToClient = String(Humidity);
+       client.print(sendToClient);
+       }
     }
     client.stop();
     Serial.println("Client disconnected");    
