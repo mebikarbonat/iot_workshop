@@ -5,9 +5,12 @@
 long previousMillis = 0; 
 long interval = 1000; 
 
+#define led1 D0
+
 void setup() 
 {
   Serial.begin(9600);
+  pinMode(led1, OUTPUT);
 }
 void loop() 
 {
@@ -20,5 +23,15 @@ void loop()
   float Vin = (Dout*0.00488);
   float temp = Vin*100;
   Serial.println(temp);
+
+  if(temp >= 50.0)
+  {
+    digitalWrite(led1, HIGH);
+  }
+  else
+  {
+    digitalWrite(led1, LOW);
+  }
+  
   }
 }
